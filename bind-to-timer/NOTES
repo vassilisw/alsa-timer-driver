@@ -1,0 +1,79 @@
+# Install kerner headers
+
+	sudo apt install linux-headers-$(uname -r)
+
+
+# Install alsa headers
+
+	sudo apt install libasound2-dev
+
+
+# Set the correct path of KSRC in the Makefile
+
+	KSRC=/lib/modules/$(uname -r)/build
+	echo $KSRC
+
+
+# Make
+
+	make
+
+# Load the module
+
+	sudo insmod timerbind.ko
+
+# Check module loaded correctly ++
+
+	dmesg | tail
+
+# Remove module from the kernel
+
+	sudo rmmod timerbind
+	lsmod | grep timerbind # check
+
+
+# Start the timer driver
+
+start (interval 1sec)
+	echo 100000000 | sudo tee -a /sys/kernel/debug/bindtimer/timer
+stop
+	echo 0 | sudo tee -a /sys/kernel/debug/bindtimer/timer
+check
+	dmesg
+
+
+
+# Chat GPT explanation of the output
+
+The output from your make command indicates that your kernel module (timerbind.c) compiled successfully. Here’s a breakdown of each line and what it means:
+
+1.    make -C /lib/modules/5.15.0-117-generic/build M=/home/vassilis/LAMA/alsa-timer-driver/bind-to-timer modules
+        This command instructs make to enter the kernel build directory (/lib/modules/5.15.0-117-generic/build) and compile the module located in /home/vassilis/LAMA/alsa-timer-driver/bind-to-timer.
+        The M=... argument specifies where your module’s source files are located.
+
+2.    make[1]: Entering directory '/usr/src/linux-headers-5.15.0-117-generic'
+        The make command is entering the kernel headers directory for the build process.
+
+3.    CC [M] /home/vassilis/LAMA/alsa-timer-driver/bind-to-timer/timerbind.o
+        The C compiler (CC) is compiling your module source file, timerbind.c, into an object file (timerbind.o).
+
+4.    MODPOST /home/vassilis/LAMA/alsa-timer-driver/bind-to-timer/Module.symvers
+        The MODPOST step is generating symbol version information, which helps the kernel track symbols (functions and variables) that modules use.
+        This step creates or updates Module.symvers, which lists all exported symbols from the compiled modules.
+
+5.    CC [M] /home/vassilis/LAMA/alsa-timer-driver/bind-to-timer/timerbind.mod.o
+        The compiler is creating an additional object file (timerbind.mod.o) that contains metadata about your module, such as its dependencies and version information.
+
+6.    LD [M] /home/vassilis/LAMA/alsa-timer-driver/bind-to-timer/timerbind.ko
+        The linker (LD) is linking the object files and creating the final kernel module file (timerbind.ko), which can be loaded into the kernel.
+
+7.    BTF [M] /home/vassilis/LAMA/alsa-timer-driver/bind-to-timer/timerbind.ko
+        The BTF step refers to generating BPF Type Format (BTF) information. BTF is a debugging format used by the kernel for tracing and introspection.
+
+8.    Skipping BTF generation for /home/vassilis/LAMA/alsa-timer-driver/bind-to-timer/timerbind.ko due to unavailability of vmlinux
+        This line is a warning that the system couldn’t generate BTF data because the vmlinux file (the uncompressed, debuggable version of the kernel binary) is unavailable.
+        This is typically not a problem unless you specifically need BTF data for advanced debugging or tracing.
+
+9.    make[1]: Leaving directory '/usr/src/linux-headers-5.15.0-117-generic'
+        make has completed the build process and is exiting the kernel headers directory.
+
